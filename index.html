@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090909">
+  <title>ANGO INFO — O conhecimento de Angola</title>
+  <style>
+    :root{--bg:#090909;--panel:#141414;--panel2:#1d1d1d;--red:#d71920;--gold:#d4af37;--text:#f5f5f5;--muted:#aaa;--line:#303030}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#241010 0,#090909 45%);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+    .app{max-width:900px;margin:auto;min-height:100vh;display:flex;flex-direction:column;padding:18px}
+    header{display:flex;align-items:center;gap:12px;padding:10px 0 20px;border-bottom:1px solid var(--line)}
+    .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--red),#7d090e);display:grid;place-items:center;font-size:22px;font-weight:900;color:white;box-shadow:0 5px 25px #d7192033}
+    .brand{font-weight:900;letter-spacing:1.5px;font-size:19px}.tag{color:var(--gold);font-size:12px;margin-top:4px}
+    .status{margin-left:auto;color:#83d69a;font-size:12px}.hero{text-align:center;padding:52px 12px 24px}
+    .flag{font-size:27px}.hero h1{font-size:clamp(27px,5vw,42px);margin:14px 0 10px}.hero h1 span{color:var(--gold)}
+    .hero p{color:var(--muted);line-height:1.6;margin:0 auto;max-width:600px}
+    .suggestions{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin:22px 0}
+    .chip{background:#171717;border:1px solid #393939;color:#ddd;padding:10px 13px;border-radius:999px;font-size:13px;cursor:pointer}
+    .chip:hover{border-color:var(--gold);color:var(--gold)}
+    #chat{flex:1;display:flex;flex-direction:column;gap:16px;padding:12px 0 24px}
+    .msg{max-width:88%;padding:14px 16px;border-radius:17px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+    .user{align-self:flex-end;background:#352022;border:1px solid #6b292d}.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line)}
+    .bot strong{color:var(--gold)}.typing{color:var(--muted);font-style:italic}
+    .composer{position:sticky;bottom:0;background:linear-gradient(transparent,#090909 22%);padding:18px 0 8px}
+    .inputbox{display:flex;gap:9px;background:var(--panel);border:1px solid #454545;border-radius:18px;padding:9px;box-shadow:0 10px 35px #0008}
+    textarea{flex:1;resize:none;min-height:46px;max-height:130px;background:transparent;border:0;outline:0;color:white;font:16px Arial;padding:13px 9px}
+    button.send{width:48px;border:0;border-radius:13px;background:var(--red);color:white;font-size:21px;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}.hint{text-align:center;color:#777;font-size:11px;margin:10px 0}
+    footer{text-align:center;color:#666;font-size:11px;padding:18px 0 6px}
+    .error{border-color:#8b3434;color:#ffcaca}
+    @media(max-width:600px){.app{padding:14px}.hero{padding-top:35px}.msg{max-width:95%}.status{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">A</div>
+    <div><div class="brand">ANGO INFO</div><div class="tag">O conhecimento de Angola na tua mão</div></div>
+    <div class="status">● Assistente disponível</div>
+  </header>
+
+  <section class="hero" id="welcome">
+    <div class="flag">🇦🇴</div>
+    <h1>O que queres <span>saber?</span></h1>
+    <p>Faz uma pergunta sobre Angola. Estamos aqui para ajudar com informação clara sobre documentos, emprego, educação, negócios, história, cultura e muito mais.</p>
+    <div class="suggestions">
+      <button class="chip" data-q="Como posso tratar o Bilhete de Identidade em Angola?">Tratar o BI</button>
+      <button class="chip" data-q="Como posso abrir uma pequena empresa em Angola?">Criar uma empresa</button>
+      <button class="chip" data-q="Conta-me um resumo da história de Angola.">História de Angola</button>
+      <button class="chip" data-q="Quais são os principais destinos turísticos de Angola?">Turismo</button>
+    </div>
+  </section>
+
+  <main id="chat" aria-live="polite"></main>
+
+  <section class="composer">
+    <div class="inputbox">
+      <textarea id="question" placeholder="Escreve a tua pergunta..." rows="1"></textarea>
+      <button class="send" id="send" aria-label="Enviar">➤</button>
+    </div>
+    <div class="hint">O ANGO INFO pode cometer erros. Confirma informações oficiais, sobretudo sobre leis e documentos.</div>
+  </section>
+  <footer>ANGO INFO © 2026 · Feito para Angola 🇦🇴</footer>
+</div>
+<script>
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('question');
+  const send = document.getElementById('send');
+  const welcome = document.getElementById('welcome');
+  const history = [];
+
+  function addMessage(text, who, extra='') {
+    const el = document.createElement('div');
+    el.className = 'msg ' + who + (extra ? ' '+extra : '');
+    el.textContent = text;
+    chat.appendChild(el);
+    el.scrollIntoView({behavior:'smooth',block:'end'});
+    return el;
+  }
+
+  async function ask(question) {
+    const q = question.trim();
+    if (!q || send.disabled) return;
+    welcome.style.display = 'none';
+    addMessage(q, 'user');
+    input.value = '';
+    send.disabled = true;
+    const loading = addMessage('O ANGO INFO está a preparar a resposta…', 'bot', 'typing');
+    try {
+      const response = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({message:q, history})
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível obter resposta.');
+      loading.textContent = data.answer || 'Não consegui preparar uma resposta. Tenta novamente.';
+      loading.classList.remove('typing');
+      history.push({role:'user',content:q},{role:'assistant',content:data.answer || ''});
+      if (history.length > 12) history.splice(0, history.length - 12);
+    } catch (err) {
+      loading.textContent = 'Não foi possível ligar à inteligência artificial. ' + err.message + ' Confirma se o site está publicado e se a API foi configurada.';
+      loading.classList.remove('typing');
+      loading.classList.add('error');
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  }
+
+  send.addEventListener('click',()=>ask(input.value));
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(input.value)}});
+  document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
+</script>
+</body>
+</html>

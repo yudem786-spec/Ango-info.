@@ -1,0 +1,29 @@
+ANGO INFO — versão inicial com chat de IA
+=========================================
+
+O que vem nesta pasta
+- index.html: interface do chat.
+- netlify/functions/chat.js: função segura que chama a API de IA no servidor.
+- netlify.toml: configuração de publicação na Netlify.
+
+IMPORTANTE
+A interface pode ser aberta para pré-visualização, mas as respostas de IA só funcionarão
+depois de publicar o projeto na Netlify e configurar uma chave de API no servidor.
+Nunca coloques a chave secreta dentro do index.html.
+
+COMO PUBLICAR (mais fácil com computador; pelo telefone também é possível)
+1. Cria uma conta em https://www.netlify.com/
+2. Faz upload da pasta do projeto (ou liga a um repositório Git).
+3. Em Netlify, abre Site configuration / Environment variables.
+4. Cria a variável OPENAI_API_KEY com a tua chave secreta da plataforma OpenAI.
+5. Faz novo deploy para a variável ser aplicada.
+
+A chave de API pode gerar custos conforme a utilização. Consulta os preços e limites
+antes de ativar. Não partilhes a chave com ninguém.
+
+TESTE LOCAL
+O index.html sozinho mostra a interface, mas a rota /.netlify/functions/chat
+precisa do ambiente Netlify Functions para responder.
+
+Este projeto é um ponto de partida. Antes de abrir ao público, adiciona limites de uso,
+proteção contra abuso, política de privacidade e informação de contacto.
